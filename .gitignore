@@ -40,5 +40,6 @@ Thumbs.db
 
 # Documentation (personal notes)
 *.md
+!README.md
 *.txt
 START.bat
