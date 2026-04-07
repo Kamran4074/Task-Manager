@@ -1,16 +1,14 @@
 # Dependencies
 node_modules/
-/.pnp
+.pnp
 .pnp.js
 
-# Testing
-/coverage
-
-# Production
+# Build output
 /build
 /dist
+frontend/dist
 
-# Environment variables
+# Environment variables - NEVER commit these
 .env
 .env.local
 .env.development.local
@@ -21,25 +19,33 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-logs
+logs/
 *.log
+backend/logs/
 
-# Editor directories and files
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
 .vscode/*
 !.vscode/extensions.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
-# OS
-Thumbs.db
+# Misc
+START.bat
+GET_STARTED.txt
+DIRECTORY_STRUCTURE.txt
+Postman_Collection.json
 
-# Documentation (personal notes)
+# Markdown (except README)
 *.md
 !README.md
+
+# Text files
 *.txt
-START.bat

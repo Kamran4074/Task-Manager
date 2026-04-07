@@ -1,5 +1,6 @@
 const Task = require('../models/Task');
 const { validationResult } = require('express-validator');
+const logger = require('../config/logger');
 
 // Get all tasks for logged in user
 const getTasks = async (req, res) => {
@@ -39,6 +40,7 @@ const createTask = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      logger.warn(`Task creation validation failed: ${JSON.stringify(errors.array())}`);
       return res.status(400).json({
         success: false,
         errors: errors.array()
@@ -50,11 +52,13 @@ const createTask = async (req, res) => {
       user: req.user._id
     });
 
+    logger.info(`Task created: ${task._id} by user: ${req.user.email}`);
     res.status(201).json({
       success: true,
       data: task
     });
   } catch (error) {
+    logger.error(`Create task error: ${error.message}`);
     console.error('Create task error:', error);
     res.status(500).json({
       success: false,
@@ -69,6 +73,7 @@ const updateTask = async (req, res) => {
     const task = await Task.findById(req.params.id);
 
     if (!task) {
+      logger.warn(`Task not found for update: ${req.params.id}`);
       return res.status(404).json({
         success: false,
         message: 'Task not found'
@@ -76,6 +81,7 @@ const updateTask = async (req, res) => {
     }
 
     if (task.user.toString() !== req.user._id.toString()) {
+      logger.warn(`Unauthorized task update attempt: ${req.params.id} by user: ${req.user.email}`);
       return res.status(403).json({
         success: false,
         message: 'Not authorized to update this task'
@@ -88,11 +94,13 @@ const updateTask = async (req, res) => {
       { new: true, runValidators: true }
     );
 
+    logger.info(`Task updated: ${req.params.id} by user: ${req.user.email}`);
     res.json({
       success: true,
       data: updatedTask
     });
   } catch (error) {
+    logger.error(`Update task error: ${error.message}`);
     console.error('Update task error:', error);
     res.status(500).json({
       success: false,
@@ -107,6 +115,7 @@ const deleteTask = async (req, res) => {
     const task = await Task.findById(req.params.id);
 
     if (!task) {
+      logger.warn(`Task not found for deletion: ${req.params.id}`);
       return res.status(404).json({
         success: false,
         message: 'Task not found'
@@ -114,6 +123,7 @@ const deleteTask = async (req, res) => {
     }
 
     if (task.user.toString() !== req.user._id.toString()) {
+      logger.warn(`Unauthorized task deletion attempt: ${req.params.id} by user: ${req.user.email}`);
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete this task'
@@ -122,11 +132,13 @@ const deleteTask = async (req, res) => {
 
     await task.deleteOne();
 
+    logger.info(`Task deleted: ${req.params.id} by user: ${req.user.email}`);
     res.json({
       success: true,
       message: 'Task deleted successfully'
     });
   } catch (error) {
+    logger.error(`Delete task error: ${error.message}`);
     console.error('Delete task error:', error);
     res.status(500).json({
       success: false,

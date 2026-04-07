@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { validationResult } = require('express-validator');
+const logger = require('../config/logger');
 
 // Generate JWT token
 const generateToken = (id) => {
@@ -14,6 +15,7 @@ const register = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      logger.warn(`Registration validation failed: ${JSON.stringify(errors.array())}`);
       return res.status(400).json({
         success: false,
         errors: errors.array()
@@ -24,6 +26,7 @@ const register = async (req, res) => {
 
     const userExists = await User.findOne({ email });
     if (userExists) {
+      logger.warn(`Registration attempt with existing email: ${email}`);
       return res.status(400).json({
         success: false,
         message: 'User already exists with this email'
@@ -31,6 +34,7 @@ const register = async (req, res) => {
     }
 
     const user = await User.create({ name, email, password });
+    logger.info(`New user registered: ${email}`);
 
     res.status(201).json({
       success: true,
@@ -42,6 +46,7 @@ const register = async (req, res) => {
       }
     });
   } catch (error) {
+    logger.error(`Registration error: ${error.message}`);
     console.error('Registration error:', error);
     res.status(500).json({
       success: false,
@@ -55,6 +60,7 @@ const login = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      logger.warn(`Login validation failed: ${JSON.stringify(errors.array())}`);
       return res.status(400).json({
         success: false,
         errors: errors.array()
@@ -65,12 +71,14 @@ const login = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user || !(await user.comparePassword(password))) {
+      logger.warn(`Failed login attempt for email: ${email}`);
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
       });
     }
 
+    logger.info(`User logged in: ${email}`);
     res.json({
       success: true,
       data: {
@@ -81,6 +89,7 @@ const login = async (req, res) => {
       }
     });
   } catch (error) {
+    logger.error(`Login error: ${error.message}`);
     console.error('Login error:', error);
     res.status(500).json({
       success: false,
